@@ -22,3 +22,12 @@ data class WrapObject(val value: String)
 
 @JvmInline
 value class ValueClass(val value: String)
+
+object Object {
+    @JvmStatic
+    fun helloWorld() = "hello world"
+}
+
+fun topLevelFunction() {
+    TODO()
+}

@@ -15,16 +15,17 @@ import io.mockk.mockkConstructor
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.slot
+import io.mockk.unmockkAll
 import io.mockk.verify
 import org.mockito.Mockito.RETURNS_DEEP_STUBS
 import org.mockito.Mockito.clearInvocations
+import org.mockito.Mockito.mockStatic
 import org.mockito.kotlin.MockitoKotlinException
 import org.mockito.kotlin.check
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.stub
 import org.mockito.kotlin.verify
-import java.time.LocalDate
 
 class Test : DescribeSpec({
     val mockkSut = mockk<Sut>()
@@ -209,18 +210,43 @@ class Test : DescribeSpec({
 
     describe("object") {
         context("mockk") {
-            mockkObject()
-        }
-    }
+            afterEach { unmockkAll() }
+            it("should create mock") {
+                mockkObject(Object)
+                every { Object.helloWorld() } returns "good bye"
 
-    describe("static method") {
-        context("mockk") {
-            it("should mock static method") {
+                Object.helloWorld() shouldBe "good bye"
             }
         }
 
         context("mockito") {
+            // need @JvmStatic
+            it("should create mock") {
+                mockStatic(Object::class.java).use {
+                    it.`when`<String> { Object.helloWorld() } doReturn "good bye"
 
+                    Object.helloWorld() shouldBe "good bye"
+                }
+            }
+        }
+    }
+
+    describe("top level function") {
+        context("mockk") {
+            it("should mock top level function") {
+                mockkStatic(::topLevelFunction)
+                justRun { topLevelFunction() }
+
+                shouldNotThrowAny {
+                    topLevelFunction()
+                }
+            }
+            unmockkAll()
+        }
+
+        context("mockito") {
+            // Currently, mocking top level function of Kotlin is not supported by Mockito core
+            // https://github.com/mockito/mockito/issues/1468
         }
     }
 })
